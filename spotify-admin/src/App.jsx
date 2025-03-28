@@ -9,7 +9,7 @@ import {Routes,Route, Router} from "react-router-dom"
 import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
 
-export const url="http://localhost:4000"
+export const url="https://spotify-music-1qiw.onrender.com"
 
 function App() {
 
