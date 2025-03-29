@@ -4,7 +4,7 @@ import axios from "axios"
 export const PlayerContext = createContext()
 const PlayerContextProvider=(props)=>{
     const  audioRef=useRef()
-      const url="http://localhost:4000"
+      const url="https://spotify-music-1qiw.onrender.com"
     
     const seekBg=useRef()
     const seekBar=useRef()
