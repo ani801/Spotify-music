@@ -16,7 +16,7 @@ const App = () => {
     // Simulate loading screen
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 1200); // Show loading for 3 seconds
+    }, 800); // Show loading for 800 mili seconds
 
     // Listen for internet status changes
     const updateOnlineStatus = () => {
