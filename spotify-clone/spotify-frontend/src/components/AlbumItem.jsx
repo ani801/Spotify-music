@@ -1,4 +1,4 @@
-import React from "react";
+
 import { useNavigate } from "react-router-dom";
 
 const AlbumItem=({image,name,desc,id})=>{

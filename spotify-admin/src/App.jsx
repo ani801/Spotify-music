@@ -11,8 +11,8 @@ import Navbar from './components/Navbar';
 import Login from './components/Login';
 import axios from 'axios';
 
-export const url = "https://spotify-music-1qiw.onrender.com";
-// export const url = "http://localhost:4000";
+//export const url = "https://spotify-music-1qiw.onrender.com";
+ export const url = "http://localhost:4000";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(null);
@@ -35,7 +35,14 @@ function App() {
       .then(() => setIsLoggedIn(false));
   };
 
-  if (isLoggedIn === null) return <div>Loading...</div>;
+  if (isLoggedIn === null) return   
+     (
+      <div className="grid place-content-center min-h-screen bg-black">
+        <div className="w-16 h-16 border-4 border-gray-400 border-t-gray-800 rounded-full animate-spin"></div>
+        <p className="text-white mt-4">Loading...</p>
+      </div>
+    );
+ 
 
   return (
     <>

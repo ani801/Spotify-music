@@ -1,66 +1,111 @@
 import React, { useContext, useState, useEffect } from "react";
-import Sidebar from "./components/Sidebar";
+import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
 import Player from "./components/Player";
 import Display from "./components/Display";
-import { PlayerContext } from "./context/PlayerContext";
+import Signup from "./components/Signup";
+import Login from "./components/Login";
 import InternetError from "./components/InternetError";
+import { PlayerContext } from "./context/PlayerContext";
+import Community from "./components/Community";
+import Sidebar from "./components/Sidebar";
+import ManageGroup from "./components/ManageGroup";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+export const url=import.meta.env.VITE_API_URL
 
 const App = () => {
-  const { audioRef, track, songsData } = useContext(PlayerContext);
+  const { audioRef, track, isLoggedIn, setIsLoggedIn } = useContext(PlayerContext);
+  const location = useLocation();
+  const navigate = useNavigate();
   
-  // State to track loading and internet status
   const [isLoading, setIsLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
-  useEffect(() => {
-    // Simulate loading screen
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 800); // Show loading for 800 mili seconds
+  console.log("uRL ", url)
 
-    // Listen for internet status changes
-    const updateOnlineStatus = () => {
-      setIsOnline(navigator.onLine);
+  // ✅ Check authentication on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await axios.get(`${url}/api/userauth`, {
+          withCredentials: true,
+        });
+        setIsLoggedIn(response.data.success);
+      } catch {
+        setIsLoggedIn(false);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    window.addEventListener("online", updateOnlineStatus);
-    window.addEventListener("offline", updateOnlineStatus);
+    checkAuth();
+  }, []);
 
+  // ✅ Redirect unauthenticated users
+  useEffect(() => {
+    if (!isLoading) {
+      const isAuthPage = ["/login", "/signup"].includes(location.pathname);
+      if (!isLoggedIn && !isAuthPage) {
+        navigate("/login");
+      }
+    }
+  }, [isLoggedIn, isLoading, location.pathname, navigate]);
+
+  // ✅ Handle online/offline status
+  useEffect(() => {
+    const updateStatus = () => setIsOnline(navigator.onLine);
+    window.addEventListener("online", updateStatus);
+    window.addEventListener("offline", updateStatus);
     return () => {
-      clearTimeout(timer);
-      window.removeEventListener("online", updateOnlineStatus);
-      window.removeEventListener("offline", updateOnlineStatus);
+      window.removeEventListener("online", updateStatus);
+      window.removeEventListener("offline", updateStatus);
     };
   }, []);
 
-  // Show loading UI
   if (isLoading) {
     return (
       <div className="grid place-content-center min-h-screen bg-black">
-        <div className="w-16 h-16 border-4 border-gray-400 border-t-gray-800 rounded-full animate-spin"></div>
+        <div className="w-16 h-16 border-4 border-gray-400 border-t-gray-800 rounded-full animate-spin" />
         <p className="text-white mt-4">Loading...</p>
       </div>
     );
   }
 
-  // Show no internet connection UI if offline
   if (!isOnline) {
     return <InternetError />;
   }
 
+  const isAuthPage = ["/login", "/signup"].includes(location.pathname);
+  const isCommunityPage = location.pathname === "/community";
+  const isManageGroupPage = location.pathname === "/community/manage-group";
+
   return (
     <div className="h-screen bg-black">
-      {songsData?.length ? (
+       <ToastContainer position="top-right" autoClose={3000} />
+      {!isAuthPage && isLoggedIn && (
         <>
-          <div className="h-[90%] flex">
-            <Sidebar />
-            <Display />
-          </div>
+          {isManageGroupPage ? (
+            <ManageGroup />
+          ) : isCommunityPage ? (
+            <Community />
+          ) : (
+            <div className="h-[90%] flex">
+              <Sidebar />
+              <Display />
+            </div>
+          )}
           <Player />
+          <audio ref={audioRef} src={track ? track.file : ""} preload="auto"></audio>
         </>
-      ):null }
+      )}
 
-      <audio ref={audioRef} src={track ? track.file : ""} preload="auto"></audio>
+      <Routes>
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/login" element={<Login />} />
+        {/* Add more routes here */}
+      </Routes>
     </div>
   );
 };

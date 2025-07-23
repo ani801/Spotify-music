@@ -1,165 +1,211 @@
-import React ,{createContext, useEffect, useRef, useState}from 'react'
-import axios from "axios"
+import React, { createContext, useEffect, useRef, useState } from 'react';
+import axios from 'axios';
+import { url } from '../App';
+import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 
-export const PlayerContext = createContext()
-const PlayerContextProvider=(props)=>{
-    const  audioRef=useRef()
-      const url="https://spotify-music-1qiw.onrender.com"
-    
-    const seekBg=useRef()
-    const seekBar=useRef()
-     
-    const[songsData,setSongsData]=useState([])
-     const[albumsData,setAlbumsData]=useState([])
-    const [track,setTrack]=useState([])
-    const [playStatus,setPlayStatus]=useState(false)
-    const[time,setTime]=useState({currentTime:{
-        second:0,
-        minute:0
-    },totalTime:{
-        second:0,
-        minute:0
-    }})
+export const PlayerContext = createContext();
 
-    useEffect(()=>{
-        getAlbumsData()
-        getSongsData()
-    },[])
+const PlayerContextProvider = (props) => {
+  const navigate = useNavigate();
+  const audioRef = useRef();
 
-   
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const seekBg = useRef();
+  const seekBar = useRef();
+  const [songsData, setSongsData] = useState([]);
+  const [formData, setFormData] = useState({ contact: '', password: '' });
+  const [useUserDetails, setUserDetails] = useState({});
+  const [albumsData, setAlbumsData] = useState([]);
+  const [track, setTrack] = useState([]);
+  const [playStatus, setPlayStatus] = useState(false);
+  const [time, setTime] = useState({
+    currentTime: { second: 0, minute: 0 },
+    totalTime: { second: 0, minute: 0 },
+  });
 
-    const getSongsData=async()=>{
-        try{
-         const response=await axios.get(`${url}/api/song/list`)
-           
-            setSongsData(response.data.songs);
-          //  console.log("In get song : ",songsData)
-           if(response.data.songs.length>=1) setTrack(response.data.songs[0])
-         
-        }catch(error)
-        {
-           console.log(error)
-        }
+  // Fetch data on mount
+  useEffect(() => {
+    getAlbumsData();
+    getSongsData();
+  }, []);
+
+  // Fetch user data when logged in
+  useEffect(() => {
+ getUserData();
+  }, []);
+
+  const getSongsData = async () => {
+    try {
+      const response = await axios.get(`${url}/api/song/list`);
+      setSongsData(response.data.songs);
+      if (response.data.songs.length >= 1) setTrack(response.data.songs[0]);
+    } catch (error) {
+      console.log(error);
     }
-   console.log(songsData)
-   console.log(albumsData)
+  };
 
-     const getAlbumsData=async()=>{
-        try{
-         const response=await axios.get(`${url}/api/album/list`) 
-         setAlbumsData(response.data.albums)
-        }catch(error)
-        {
-
-        }
+  const getUserData = async () => {
+    try {
+      const response = await axios.get(`${url}/api/user/userdetails`, {
+        withCredentials: true,
+      });
+      if (response.data.success) {
+        setUserDetails(response.data.user);
+      }
+    } catch (error) {
+      console.log(error);
     }
+  };
 
-    
-
-    const play=()=>{
-        audioRef.current.play()
-        setPlayStatus(true)
-    } 
-    
-    const pause=()=>{
-        audioRef.current.pause()
-        setPlayStatus(false)
-    }       
-
-    useEffect(() => {
-        const audioElement = audioRef.current;
-    
-        if (audioElement) {
-            // Update the time state on each ontimeupdate event
-            setTimeout(
-            audioElement.ontimeupdate = () => { 
-                if (seekBar.current) {
-                seekBar.current.style.width=(Math.floor(audioElement.currentTime/audioElement.duration*100))+"%"
-            }
-                setTime({
-                    currentTime: {
-                        second: Math.floor(audioElement.currentTime % 60),
-                        minute: Math.floor(audioElement.currentTime / 60),
-                    },
-                    totalTime: {
-                        second: Math.floor(audioElement.duration % 60) || 0,
-                        minute: Math.floor(audioElement.duration / 60) || 0,
-                    },
-                });
-            },1000);
-        }
-        return () => {
-            if (audioElement) {
-                audioElement.ontimeupdate = null;
-            }
-        };
-    }, [audioRef]);
-
-
-    const palyWithId=async(id)=>{
-    await songsData.map((item)=>{
-        if(id===item._id)
-        {
-            setTrack(item)
-        }
-    }) 
-await audioRef.current.play()
-await setPlayStatus(true) 
-  }
-
-    const previous=async()=>{
-       songsData.map(async(item,index)=>{
-        if(track._id===item._id&&index>0)
-        {
-            await setTrack (songsData[index-1])
-            await audioRef.current.play()
-            setPlayStatus(true)
-        }
-       })
+  const getAlbumsData = async () => {
+    try {
+      const response = await axios.get(`${url}/api/album/list`);
+      setAlbumsData(response.data.albums);
+    } catch (error) {
+      console.log(error);
     }
+  };
 
-    const seekSong=async(event)=>{
-        const { offsetX } = event.nativeEvent; // Get horizontal click position
-        const totalWidth = event.currentTarget.offsetWidth; // Get div width
-        const clickRatio = offsetX / totalWidth; // Calculate
+  const play = () => {
+    audioRef.current.play();
+    setPlayStatus(true);
+  };
 
-        const audioElement = audioRef.current;
-        if (audioElement && audioElement.duration) {
-          const newTime = clickRatio * audioElement.duration; // Calculate new time
-          audioElement.currentTime = newTime; // Set the audio's current time
-        }
-        
+  const pause = () => {
+    audioRef.current.pause();
+    setPlayStatus(false);
+  };
+
+  useEffect(() => {
+    const audioElement = audioRef.current;
+    if (!audioElement) return;
+
+    const updateTime = () => {
+      if (seekBar.current && audioElement.duration) {
+        seekBar.current.style.width =
+          Math.floor((audioElement.currentTime / audioElement.duration) * 100) + '%';
+      }
+
+      setTime({
+        currentTime: {
+          second: Math.floor(audioElement.currentTime % 60),
+          minute: Math.floor(audioElement.currentTime / 60),
+        },
+        totalTime: {
+          second: Math.floor(audioElement.duration % 60) || 0,
+          minute: Math.floor(audioElement.duration / 60) || 0,
+        },
+      });
+    };
+
+    audioElement.addEventListener('timeupdate', updateTime);
+    return () => audioElement.removeEventListener('timeupdate', updateTime);
+  }, []);
+
+  const palyWithId = async (id) => {
+    const song = songsData.find((item) => item._id === id);
+    if (song) {
+      setTrack(song);
+      await audioRef.current.play();
+      setPlayStatus(true);
     }
-    
-    const next=async()=>{
-        songsData.map(async(item,index)=>{
-        if(track._id===item._id&&index<songsData.length-1)
-        {
-            await setTrack (songsData[index+1])
-            await audioRef.current.play()
-            setPlayStatus(true)
-        }
-       })
-    }
+  };
 
-
-    const contextValue={
-        audioRef,
-        seekBar,
-        seekBg,
-        track,setTrack,
-        playStatus,setPlayStatus,
-        time,setTime,
-        play,pause,
-        palyWithId,previous,
-        next,seekSong,
-        songsData,albumsData
+  const previous = async () => {
+    const index = songsData.findIndex((item) => item._id === track._id);
+    if (index > 0) {
+      setTrack(songsData[index - 1]);
+      await audioRef.current.play();
+      setPlayStatus(true);
     }
- 
-    return (
-        <PlayerContext.Provider value={contextValue}>
-            {props.children}
-        </PlayerContext.Provider>
-    )
-}
-export default PlayerContextProvider
+  };
+
+  const next = async () => {
+    const index = songsData.findIndex((item) => item._id === track._id);
+    if (index < songsData.length - 1) {
+      setTrack(songsData[index + 1]);
+      await audioRef.current.play();
+      setPlayStatus(true);
+    }
+  };
+
+  const seekSong = async (event) => {
+    const { offsetX } = event.nativeEvent;
+    const totalWidth = event.currentTarget.offsetWidth;
+    const clickRatio = offsetX / totalWidth;
+    const audioElement = audioRef.current;
+    if (audioElement && audioElement.duration) {
+      audioElement.currentTime = clickRatio * audioElement.duration;
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const { contact, password } = formData;
+    if (!contact || !password) {
+      toast.error('Both fields are required!');
+      return;
+    }
+    try {
+      const response = await axios.post(
+        `${url}/api/user/login`,
+        { contact, password },
+        { withCredentials: true }
+      );
+      if (response.data.success) {
+        setUserDetails(response.data.user);
+        setIsLoggedIn(true);
+        getUserData();
+        setTimeout(() => navigate('/'), 0);
+      } else {
+        toast.error(response.data.message || 'Login failed!');
+      }
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
+        toast.error(error.response.data.message || 'Unauthorized: Invalid credentials');
+      } else {
+        toast.error('An error occurred. Please try again later.');
+      }
+    }
+  };
+
+  console.log("userDetails", useUserDetails);   
+
+  const contextValue = {
+    audioRef,
+    seekBar,
+    seekBg,
+    track,
+    setTrack,
+    playStatus,
+    setPlayStatus,
+    time,
+    setTime,
+    play,
+    pause,
+    palyWithId,
+    previous,
+    next,
+    seekSong,
+    songsData,
+    albumsData,
+    useUserDetails,
+    isOpen,
+    setIsOpen,
+    setIsLoggedIn,
+    isLoggedIn,
+    handleSubmit,
+    formData,
+    setFormData,
+  };
+
+  return (
+    <PlayerContext.Provider value={contextValue}>
+      {props.children}
+    </PlayerContext.Provider>
+  );
+};
+
+export default PlayerContextProvider;

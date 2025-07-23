@@ -3,6 +3,8 @@ import { Routes,Route, useLocation } from "react-router-dom";
 import DisplayHome from "./DisplayHome";
 import Displayalbum from "./Displayalbum";
 import { PlayerContext } from "../context/PlayerContext";
+import Profile from "./Profile";
+
 
 const Display=()=>{
 const{albumsData}=useContext(PlayerContext)
@@ -24,8 +26,9 @@ return (
 <div ref={displayRef} className="w-[100%] m-2 px-6 pt-4 rounded bg-[#121212] text-white overflow-auto lg:w-[75%] lg:ml-0"> 
     {
         albumsData.length>0 ?
-        <Routes>
+        <Routes>             
     <Route path="/" element={<DisplayHome/>}/>
+    <Route path='/profile/:id' element={<Profile/>}/>
     <Route path='/album/:id' element={<Displayalbum album={albumsData.find((x)=>(x._id===albumId))}/>}/>
     </Routes> :null
     }
