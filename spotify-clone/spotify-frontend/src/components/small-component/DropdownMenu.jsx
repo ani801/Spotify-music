@@ -3,6 +3,7 @@ import { useContext } from 'react';
 import { PlayerContext } from '../../context/PlayerContext';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+const url=import.meta.env.VITE_API_URL
 
 export default function DropdownMenu() {
   const navigate = useNavigate();
@@ -10,7 +11,7 @@ export default function DropdownMenu() {
 
   const handleLogout = async () => {
     try {
-      const response = await axios.post("http://localhost:4000/api/user/logout", {}, { withCredentials: true });
+      const response = await axios.post(`${url}/api/user/logout`, {}, { withCredentials: true });
       if (response.data.success) {
         toast.success("Logged out successfully");
         navigate('/login');
