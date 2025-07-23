@@ -25,7 +25,7 @@ app.use(express.json())
 app.use(express.urlencoded({extended:true}))
 app.use(cookieParser());
 app.use(cors({
-  origin: "http://localhost:5173", // or '*' to allow all origins (not recommended for production)
+  origin: "https://spotify-music-frontend.onrender.com", // or '*' to allow all origins (not recommended for production)
   credentials: true // only needed if you're using cookies/auth
 }));
 // Create HTTP server
@@ -35,7 +35,7 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: 
   {
-    origin: "http://localhost:5173",
+    origin: "https://spotify-music-frontend.onrender.com",
     credentials: true
   }
 });
