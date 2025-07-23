@@ -7,7 +7,7 @@ import { PlayerContext } from "../context/PlayerContext";
 import { io } from "socket.io-client";
 import axios from "axios";
 
-export const uri=import.meta.env.VITE_API_URL
+ const uri=import.meta.env.VITE_API_URL
 
 export default function Community() {
   const [selectedChat, setSelectedChat] = useState(null);
