@@ -9,8 +9,7 @@ import {
   isOwnMessage,
 } from "../../utils/chatUtils";
 
-
-const uri = "http://localhost:4000";
+ const uri=import.meta.env.VITE_API_URL
 let typingTimeout = null;
 
 export default function ChatBox({ selectedChat, socket , setTrigger,setOnlineUsers,onlineUsers }) {
