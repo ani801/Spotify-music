@@ -8,7 +8,7 @@ const userAuth = async (req, res,next) => {
     console.log("Token ",token)
     
     if (!token) {
-        return res.status(401).json({ message: 'Not logged in' });
+        return res.status(401).json({ success:false,message: 'Not logged in' });
     }
     
     try {
@@ -16,7 +16,7 @@ const userAuth = async (req, res,next) => {
         req.userId=decoded.id; // Assuming the token contains the user ID
         const user = await User.findById(req.userId);
         if (!user) {
-            return res.status(401).json({ message: 'User not found' });
+            return res.status(401).json({ success: false,message: 'User not found' });
         }
         req.user = user; // Attach user to request object
         next()
