@@ -5,6 +5,7 @@ import User from '../models/userModel.js'; // Assuming you have a User model def
 
 const userAuth = async (req, res,next) => {
     const token = req.cookies.token;
+    console.log("Token ",token)
     
     if (!token) {
         return res.status(401).json({ message: 'Not logged in' });
