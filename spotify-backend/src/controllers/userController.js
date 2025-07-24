@@ -19,8 +19,8 @@ const adminLogin = async (req, res) => {
 
       res.cookie('token', token, {
         httpOnly: true,
-        sameSite: 'Lax', // Use 'None' with secure: true if cross-site cookie is needed
-        secure:false, // true only on HTTPS: process.env.NODE_ENV === 'production'
+        sameSite:  "None", // Use 'None' with secure: true if cross-site cookie is needed
+        secure:true, // true only on HTTPS: process.env.NODE_ENV === 'production'
         maxAge: 3*3600000 // 1 hour
       });
 
